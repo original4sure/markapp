@@ -1,0 +1,4 @@
+node_modules/
+electron-builder.yml
+out/
+/node_modules
