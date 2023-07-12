@@ -1,0 +1,132 @@
+<!-- <!DOCTYPE html> -->
+<!-- <html>
+  <head>
+    <meta charset="UTF-8"> -->
+<!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <title>Hello World!</title>
+  </head>
+  <body>
+    Title: <input id="title"/>
+    <button id="btn" type="button">Set</button>
+    <script src="./renderer.js"></script>
+  </body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>Mark Edge</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script> -->
+</head>
+
+<body>
+  <div class="wrapper">
+    <header>
+      <h1>Mark Edge</h1>
+      <p id="version"></p>
+    </header>
+    <!-- <button id = "install-button">Install O4S</button> -->
+    <!-- <button id = "update-button">Update O4S</button> -->
+
+    <form action="#">
+      <!-- <input type="text" placeholder="Paste file text" required> -->
+      <!-- <p  id = "install" style="cursor: pointer;"> Install O4S</p> -->
+      <!-- <p id = "update-button" style="cursor: pointer;" >Update O4S</p> -->
+
+    
+      <p id="update-status" ></p>
+      <i id="update-service-spinner" style="font-size:24px;float: left;margin-right: 10px;"></i>
+      <!-- For spinning class="fa fa-solid fa-spinner fa-spin" -->
+      <!-- <i id = "spiner-uid" class="fa fa-check-square-o" style="font-size:20px;float: left;margin-right: 10px;"></i> -->
+      <p id="update-service-status"></p>
+
+      <i id="update-download-spinner" style="font-size:24px;float: left;margin-right: 10px;"></i>
+      <!-- For spinning class="fa fa-solid fa-spinner fa-spin" -->
+      <!-- <i id = "spiner-uid" class="fa fa-check-square-o" style="font-size:20px;float: left;margin-right: 10px;"></i> -->
+      <p id="update-download-status"></p>
+
+
+      <i id="update-installation-spinner" style="font-size:24px;float: left;margin-right: 10px;"></i>
+      <!-- For spinning class="fa fa-solid fa-spinner fa-spin" -->
+      <!-- <i id = "spiner-uid" class="fa fa-check-square-o" style="font-size:20px;float: left;margin-right: 10px;"></i> -->
+      <p id="update-installation-status"></p>
+
+      <i id="update-restarting-services-spinner" style="font-size:24px;float: left;margin-right: 10px;"></i>
+      <!-- For spinning class="fa fa-solid fa-spinner fa-spin" -->
+      <!-- <i id = "spiner-uid" class="fa fa-check-square-o" style="font-size:20px;float: left;margin-right: 10px;"></i> -->
+      <p id="update-restarting-services-status"></p>
+
+      <!-- For spinning class="fa fa-solid fa-spinner fa-spin" -->
+      <!-- <i id = "spiner-uid" class="fa fa-check-square-o" style="font-size:20px;float: left;margin-right: 10px;"></i> -->
+      <!-- <p id="install-status"></p> -->
+      <div>
+        <i id="install-spinner" style="font-size:24px;float: left;margin-right: 10px;"></i>
+        <!-- For spinning class="fa fa-solid fa-spinner fa-spin" -->
+        <!-- <i id = "spiner-uid" class="fa fa-check-square-o" style="font-size:20px;float: left;margin-right: 10px;"></i> -->
+        <p id="install-status"></p>
+      </div>
+      <i id="service-already-installed-spinner" style="font-size:24px;float: left;margin-right: 10px;"></i>
+      <p id="service-already-installed-status"></p>
+      <div>
+        <i id="mongodb-spinner" style="font-size:24px;float: left;margin-right: 10px;"></i>
+        <!-- For spinning class="fa fa-solid fa-spinner fa-spin" -->
+        <!-- <i id = "spiner-uid" class="fa fa-check-square-o" style="font-size:20px;float: left;margin-right: 10px;"></i> -->
+        <p id="mongodb-status"></p>
+      </div>
+      <br>
+      <div>
+        <i id="uidManager-spinner" style="font-size:24px;float: left;margin-right: 10px;"></i>
+        <p id="uidManager-status"></p>
+      </div>
+      <br>
+      <div>
+        <i id="serializer-spinner" style="font-size:24px;float: left;margin-right: 10px;"></i>
+        <p id="serializer-status"></p>
+      </div>
+      <br>
+      <!-- <i id = "serializer-spinner"  style="font-size:24px;float: left;margin-right: 10px;"></i> -->
+      <!-- <p id="serializer-status"></p>  -->
+
+      <i id="labelPrinter-spinner" style="font-size:24px;float: left;margin-right: 10px;"></i>
+      <p id="labelPrinter-status"></p>
+
+      <br>
+      <i id="service-spinner" style="font-size:24px;float: left;margin-right: 10px;"></i>
+      <p id="service-status"></p>
+      <!-- <button>Download File</button> -->
+    </form>
+  </div>
+  <script src="script.js"></script>
+</body>
+
+</html>
+
+<!-- <html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>File Downloader in JavaScript| CodingNepal</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Edge Installer</h1>
+        <p>Paste url of image, video, or pdf to download. This tool is made with vanilla javascript.</p>
+      </header>
+      <form action="#">
+        <input type="url" placeholder="Paste file url" required>
+        <button>Download File</button>
+      </form>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html> -->

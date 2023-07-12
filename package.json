@@ -1,0 +1,49 @@
+{
+  "name": "mark-edge",
+  "version": "3.0.2",
+  "description": "Install Mark App",
+  "main": "main.js",
+  "scripts": {
+    "start-electron": "electron ./main.js",
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "DEBUG=electron-forge:* electron-forge make --platform=win32",
+    "publish": "DEBUG=electron-forge:* electron-forge publish --platform=win32",
+    "dist": "electron-builder",
+    "build": "electron-builder build  --win --x64 --publish never",
+    "deploy": "electron-builder build --win --x64 --publish always"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sachinnagpal/electron-auto-updater.git"
+  },
+  "build": {
+    "appId": "com.sachin.edge_mark",
+    "productName": "Edge-App",
+    "win": {
+      "target": "nsis"
+    },
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "author": "O4S",
+  "license": "ISC",
+  "dependencies": {
+    "electron-log": "^4.4.8",
+    "electron-updater": "^5.3.0",
+    "fs-extra": "^11.1.1",
+    "update-electron-app": "^2.0.1"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.1.1",
+    "@electron-forge/maker-deb": "^6.1.1",
+    "@electron-forge/maker-rpm": "^6.1.1",
+    "@electron-forge/maker-squirrel": "^6.1.1",
+    "@electron-forge/maker-zip": "^6.1.1",
+    "@electron-forge/publisher-github": "^6.1.1",
+    "@electron-forge/publisher-s3": "^6.2.1",
+    "electron": "^24.3.1",
+    "electron-updater": "^5.3.0"
+  }
+}

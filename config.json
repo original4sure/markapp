@@ -1,0 +1,72 @@
+{
+  "MONGO": {
+    "IP": "localhost",
+    "PORT": 27017,
+    "STRATEGY": "none"
+  },
+  "UID_MANAGER": {
+    "PROTOCOL": "http",
+    "IP": "localhost",
+    "PORT": 8080
+  },
+  "WMS_BACKEND": {
+    "PROTOCOL": "http",
+    "IP": "192.168.0.35",
+    "PORT": 9090
+  },
+  "WMS_CLIENT": {
+    "PROTOCOL": "http",
+    "IP": "192.168.0.35",
+    "PORT": 3030
+  },
+  "MARK_CONSOLE_CLIENT": {
+    "PROTOCOL": "http",
+    "IP": "192.168.0.35",
+    "PORT": 6060
+  },
+  "SERIALIZER_BACKEND": {
+    "PROTOCOL": "http",
+    "IP": "localhost",
+    "PORT": 51988
+  },
+  "LABEL_PRINTER_BACKEND": {
+    "IP": "localhost",
+    "PORT": 7000,
+    "PROTOCOL": "http"
+  },
+  "LABEL_PRINTER_CLIENT": {
+    "PROTOCOL": "http",
+    "IP": "localhost",
+    "PORT": 5050
+  },
+  "UID_CLEANER": {
+    "PROTOCOL": "http",
+    "IP": "localhost",
+    "PORT": 3000
+  },
+  "UID_MANAGER_DASHBOARD": {
+    "PROTOCOL": "http",
+    "IP": "localhost",
+    "PORT": 8081
+  },
+  "HEALTH_CONFIG": {
+    "MACHINE_CONFIG": {
+      "LIMITATION": {
+        "DISK_USED_PERCENTAGE": 1,
+        "MEMORY_USED_PERCENTAGE": 1,
+        "CPU_USED_PERCENTAGE": 1
+      }
+    },
+    "BACKUP_CONFIG": {
+      "LIMITATION": {
+        "PRIMARY_USED_PERCENTAGE": 70,
+        "SECONDARY_USED_PERCENTAGE": 70,
+        "TERTIARY_USED_PERCENTAGE": 70
+      }
+    },
+    "SCHEDULED": {
+      "HEALTH_INTERVAL": 300000
+    }
+  },
+  "AUTH_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsZXZlbCI6MCwidHlwZSI6Ik1BTlVGQUNUVVJFUiIsInBob25lTnVtYmVyIjoiKzkxODg4ODg4OTk5OSIsImFsaWVuSWQiOiJNYXlhbmt0ZXN0LTg4OTk5IiwiZGV2aWNlSWQiOiJkdW1teSIsImNvbXBhbnlDb2RlIjoiZ252LWNvbW1vZGl0aWVzIn0.kSCNvnCIbaHV5RV-JZZH5JDF8zvDesSa4ePYM9bhDoI"
+}
