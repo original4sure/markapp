@@ -1,7 +1,7 @@
 const https = require('https');
 const fs = require('fs-extra');
 const util = require("util")
-const { spawn, execFileSync, execFile, spawnSync, execSync } = require("child_process");
+const { spawn, spawnSync, execSync } = require("child_process");
 const exec = util.promisify(require('child_process').exec)
 const { createHash } = require("crypto");
 const { app, autoUpdater, dialog } = require('electron');
@@ -368,7 +368,7 @@ const downloadAndInstallAllDependencies = async function () {
   }
 }
 
-const downloadDependency = async function (depedency) {
+const downloadDependency = async function (dependency) {
   let fileName = dependency.url.split("/")[dependency.url.split("/").length - 1]
   let filePath = constants.appDirectory + fileName
   let fileDownloaded = false
@@ -877,75 +877,6 @@ const isServiceRunning = function (dependency) {
   }
 }
 
-const isMongoRunning = function () {
-  let isAppRunRunning = true
-  try {
-    const res = execSync(`tasklist /v | findstr /I mongod.exe`);
-    log.info(`res for mongo after exec Sync : ${res}`)
-  } catch (err) {
-    log.error(`Mongo Check failed with error ${JSON.stringify(err.message)}`)
-    isAppRunRunning = false
-  }
-  return isAppRunRunning
-}
-const runServices = async function () {
-  log.info("Running up the services")
-  mainWindow.webContents.send(`services-running:status`, 'Running Services');
-  let errorMessage = ''
-  for (let service of servicesData) {
-    try {
-      service.triggered = true
-      let command = spawn(service.commandToRun, {
-        shell: true,
-
-      })
-      command.stdout.on('data', (data) => {
-        log.info(`Status for service ${service.name} ${JSON.stringify(data)}`);
-        service.initilalisationCompleted = true
-        collectServiceStatus()
-      });
-      command.stderr.on('data', (data) => {
-        log.info(`Error for service ${service.name} ${data}`);
-        service.initilalisationCompleted = true
-        if (data.includes('uid-manager') && data.includes('already running')) {
-          service.isRunning = true
-        }
-        collectServiceStatus()
-      });
-      command.on('exit', function (code, signal) {
-        service.initilalisationCompleted = true
-        log.info(`child process for service ${service.name} exited with ` +
-          `code ${code} and signal ${signal}`);
-        if (service.name === "mongo") {
-          log.info("Checking if mongo is running now ")
-          let mongoRunning = isMongoRunning()
-          if (mongoRunning) {
-            service.isRunning = true
-          }
-        }
-        collectServiceStatus()
-      });
-    } catch (err) {
-      errorMessage = `Failed to start ${service.name} <br>`
-      log.error(err)
-
-    }
-  }
-}
-
-function collectServiceStatus() {
-  let allServiceTriggered = servicesData.filter(service => service.triggered).length === servicesData.length
-  let allServicesInitialisationDone = servicesData.filter(service => service.initilalisationCompleted).length === servicesData.length
-  log.info(`allServiceTriggered ${allServiceTriggered}`)
-  log.info(`allServicesInitialisationDone ${allServicesInitialisationDone}`)
-  if (allServiceTriggered && !statusSent && allServicesInitialisationDone) {
-    statusSent = true
-    mainWindow.webContents.on('did-finish-load', function () {
-      mainWindow.webContents.send(`services-running:status`, servicesData);
-    });
-    mainWindow.webContents.send(`services-running:status`, servicesData);
-  }
-}
 async function downloadFile(url, path) {
   log.info(`filePath : ${path}`)
   // let fileFullPath = localPath + url.split("/").pop()  
