@@ -31,6 +31,7 @@ const downloadDependency = async function (dependency, type="installing") {
 }
 
 const startServices = async function () {
+  startMongo()
   let appJson = fs.readJSONSync(path.join(constants.DIRECTORIES.APP, "app.json"))
   log.info(JSON.stringify(appJson, null, 2))
   for (let dependency of appJson) {
@@ -82,6 +83,14 @@ const startService = function (dependency) {
   }
 }
 
+const startMongo = function() {
+  const mongoCommandToStart = "& net start mongodb"
+  let mongoRunning = utils.runSpawnCommand(mongoCommandToStart)
+  if(!mongoRunning.success) {
+    log.info(`Failed to start mongo`)
+    throw new Error(`Failed to start mongo`)
+  }
+}
 const sanatizeOutput = function(data) {
   return data.replace(ASCII_MATCH_REGEX, '')
 }

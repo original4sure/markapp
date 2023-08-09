@@ -33,6 +33,7 @@ const bootMarkEdge = async function () {
 
   } catch (err) {
     log.info(err)
+    throw err
   }
 }
 
@@ -103,7 +104,9 @@ const setupDirectories = function () {
 
 const checkIfServicesAllreadyInstalled = function () {
   try {
-    if (fs.existsSync(path.join(constants.DIRECTORIES.APP, "config.json")) && fs.existsSync(path.join(constants.DIRECTORIES.APP, "app.json"))) {
+    if (fs.existsSync(path.join(constants.DIRECTORIES.APP, "config.json")) &&
+     fs.existsSync(path.join(constants.DIRECTORIES.APP, "app.json"))  && 
+     fs.existsSync(`C:\\Windows\\System32\\mark.ps1`)) {
       return true
     }
   } catch (err) {

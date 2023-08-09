@@ -1,5 +1,5 @@
 const serviceUtils = require("./serviceUtils")
-const constants  = require("./constants")
+const constants = require("./constants")
 const utils = require("./utils")
 const path = require('path')
 const { spawnSync } = require("child_process");
@@ -12,10 +12,11 @@ let installedDependencies = []
 
 
 const installMark = async function () {
+  // try {}
   setupNssm()
   setExecutionPolicy()
-  await utils.downloadFile(constants.URLS.CONFIG_JSON, path.join(constants.DIRECTORIES.APP , "config.json"))
-  await utils.downloadFile(constants.URLS.REGISTER_SERVICE, path.join(constants.DIRECTORIES.APP , "register-service.ps1"))
+  await utils.downloadFile(constants.URLS.CONFIG_JSON, path.join(constants.DIRECTORIES.APP, "config.json"))
+  await utils.downloadFile(constants.URLS.REGISTER_SERVICE, path.join(constants.DIRECTORIES.APP, "register-service.ps1"))
   manifestJson = await downloadManifestJson()
   log.info("Installing components...")
   await downloadAndInstallAllDependencies()
@@ -68,7 +69,7 @@ const downloadAndInstallAllDependencies = async function () {
       log.info(`sending data ${JSON.stringify(componentsStatuses)}`)
       sendInstallationAlert(component)
       utils.sendAlert(constants.UI_ALERT_KEYS.DEPENDENCY_RUNNING, componentsStatuses)
-     
+
       for (let dependency of manifestJson.apps[component.name]) {
         log.info(dependency.name)
         await serviceUtils.downloadDependency(dependency)
@@ -87,7 +88,7 @@ const downloadAndInstallAllDependencies = async function () {
     }
     log.info(installedDependencies)
     updateAppJson(installedDependencies)
-  
+
   } catch (err) {
     throw err
   }
@@ -103,8 +104,8 @@ const installDependency = async function (dependency) {
       case constants.DEPENDENCY_TYPES.NSSM_SERVICE:
         registerService(dependency)
         break
-      case constants.DEPENDENCY_TYPES.MSI_INSTALLER:
-        installMSIFiles(dependency)
+      case constants.DEPENDENCY_TYPES.MONGO_INSTALLER:
+        await installMongSyncWithoutPopup(dependency)
         break
       case constants.DEPENDENCY_TYPES.ARCHIVE:
         await unzipArchive(dependency)
@@ -150,13 +151,66 @@ const registerService = function (dependency) {
   }
 }
 
-const installMSIFiles = function (dependency) {
-  if (dependency.name === 'MONGO') {
-    installMongSync(dependency)
-  } else {
-    log.info(`Ignoring Unknown dependency ${dependency.name}`)
+const uninstallMongo = function () {
+  const mongoInstalledCommand = `Get-Service -Name "mongodb"`
+  const mongoInstalled = utils.runSpawnCommand(mongoInstalledCommand)
+  log.info(`mongoInstalled ${JSON.stringify(mongoInstalled)}`)
+  if (!mongoInstalled.success) {
+    return
+  }
+  const uninstallCommand = `& "${constants.DIRECTORIES.MONGO}\\bin\\mongod.exe" --remove`
+  utils.runSpawnCommand(uninstallCommand)
+  const binDirectory = path.join(constants.DIRECTORIES.MONGO, "bin");
+  fs.rmSync(binDirectory, { recursive: true, force: true });
+  log.info(`Uninstalled mongo successfully`)
+}
+const installMongSyncWithoutPopup = async function () {
+  uninstallMongo()
+  const mongoDbPath = constants.DIRECTORIES.MONGO
+  const unzippedFolderContent = path.join(mongoDbPath, "mongodb-win32-x86_64-2012plus-4.2.8")
+  const mongoDbConfigPath = path.join(mongoDbPath, "mongod.cfg")
+  await createMongoPaths()
+  const mongoZipPath = path.join(constants.DIRECTORIES.APP, "mongodb-win32-x86_64-2012plus-4.2.8.zip")
+  await utils.extractFiles(mongoZipPath, mongoDbPath)
+  log.info(`files are exctracted successfully `)
+  try {
+    fs.copySync(unzippedFolderContent, mongoDbPath, { overwrite: true })
+    log.info("Files are copied")
+  } catch (err) {
+    log.info(`Failed to copy content`)
+    log.info(err)
+    throw err
+  }
+  fs.rmSync(unzippedFolderContent, { recursive: true, force: true });
+  let installCommand = `& "${mongoDbPath}\\bin\\mongod.exe" --config "${mongoDbConfigPath}" --install`
+  let installCommandRes = utils.runSpawnCommand(installCommand)
+  log.info(JSON.stringify(installCommandRes))
+  if (!installCommandRes.success) {
+    throw new Error(`Mongo Installation failed`)
+  }
+  log.info(`Mongo installed successfully`)
+}
+
+const createMongoPaths = async function () {
+  try {
+    const mongoDbPath = "C:\\Program Files\\MongoDB\\Server\\4.2"
+    const mongoLogPath = path.join(mongoDbPath, 'log')
+    const mongoDataPath = path.join(mongoDbPath, 'data')
+    fs.ensureDirSync(mongoDbPath)
+    fs.ensureDirSync(mongoLogPath)
+    fs.ensureDirSync(mongoDataPath)
+    const mongoDbConfigPath = path.join(mongoDbPath, "mongod.cfg")
+    if (fs.existsSync(mongoDbConfigPath)) {
+      log.info(`Mongo config already downloaded`)
+    } else {
+      await utils.downloadFile("https://mark-assets.s3.ap-south-1.amazonaws.com/markV3/installerV3/mongod.cfg", mongoDbConfigPath)
+    }
+  } catch (err) {
+    log.info(`Failed to setup Mongo directories`)
+    throw err
   }
 }
+
 
 const installMongSync = function () {
   try {
@@ -180,7 +234,7 @@ const unzipArchive = async function (dependency) {
   try {
     let dependencyFileName = utils.extractFileNameFromUrl(dependency)
     let dependencyPath = path.join(constants.DIRECTORIES.APP, dependencyFileName)
-  
+
     if (dependency.type === constants.DEPENDENCY_TYPES.APP_ARCHIVE) {
       log.info(`coming for decompress app archive ${dependency.name}`)
       let command = `Expand-Archive -Path ${dependencyPath} -DestinationPath ${constants.DIRECTORIES.APP} -Force -ErrorAction Stop`
@@ -205,7 +259,7 @@ const unzipArchive = async function (dependency) {
       log.info(`ARCHIVE ` + JSON.stringify(res))
       if (!res.success) {
         throw Error(res.data)
-      } 
+      }
       return true
     }
   } catch (err) {
@@ -219,7 +273,18 @@ const startProcess = function (dependency) {
   let dependencyFileName = utils.extractFileNameFromUrl(dependency)
   let dependencyPath = path.join(constants.DIRECTORIES.APP, dependencyFileName)
   log.info(`Starting up the process ${dependencyPath}`)
-  let res = utils.runSpawnCommand(`Start-Process ${dependencyPath} -Wait`)
+  let res
+  const silentCommand = `Start-Process -Wait -FilePath ${dependencyPath} -ArgumentList /S -PassThru`
+  if (dependency.name === "glabels") {
+    res = utils.runSpawnCommand(silentCommand)
+    command = `[System.Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\Program Files\\glabels 3.99.0\\bin', [System.EnvironmentVariableTarget]::Machine)`
+    let ans = utils.runSpawnCommand(command)
+    log.info(JSON.stringify(ans))
+  } else if (dependency.name === "NOSQLBOOSTER") {
+    res = utils.runSpawnCommand(silentCommand)
+  } else {
+    res = utils.runSpawnCommand(`Start-Process ${dependencyPath} -Wait`)
+  }
   if (!res.success) {
     throw Error(`Start process failed for ${dependency.name}`)
   } else {
@@ -231,7 +296,6 @@ const unzipApp = async function (dependency) {
   try {
     let dependencyFileName = utils.extractFileNameFromUrl(dependency)
     let dependencyWithExecutableExtension = dependencyFileName.replace("zip", "exe")
-
     let isAppRunRunning = serviceUtils.appRuning(dependencyWithExecutableExtension)
     log.info(`isAppRunRunning ${JSON.stringify(isAppRunRunning)}`)
     if (isAppRunRunning) {
@@ -258,24 +322,39 @@ const appRuning = function (dependencyFileName) {
 
 
 const setEnvironmentVariables = function () {
-  let env = "prod"
-  let logLevel = `info`
-  let appJson = fs.readJSONSync(path.join(constants.DIRECTORIES.APP, "app.json"))
-  let nssmServices = appJson.filter(app => app.type === constants.DEPENDENCY_TYPES.NSSM_SERVICE)
-  log.info(JSON.stringify(nssmServices), null, 2)
-  for (let service of nssmServices) {
-    let command = `nssm set ${service.name} AppEnvironmentExtra NODE_ENV=${env} O4S_CONFIG_PATH=${path.join(constants.DIRECTORIES.APP, "config.json")} LOG_LEVEL=${logLevel} >$null 2>&1`
-    utils.runSpawnCommand(command)
+  try {
+    let env = "prod"
+    let logLevel = `info`
+    let appJson = fs.readJSONSync(path.join(constants.DIRECTORIES.APP, "app.json"))
+    let nssmServices = appJson.filter(app => app.type === constants.DEPENDENCY_TYPES.NSSM_SERVICE)
+    log.info(JSON.stringify(nssmServices), null, 2)
+    utils.sendAlert(constants.UI_ALERT_KEYS.ENVIRONMENT_SETUP, { configuring: true })
+    for (let service of nssmServices) {
+      let command = `nssm set ${service.name} AppEnvironmentExtra NODE_ENV=${env} O4S_CONFIG_PATH=${path.join(constants.DIRECTORIES.APP, "config.json")} LOG_LEVEL=${logLevel} >$null 2>&1`
+      utils.runSpawnCommand(command)
+    }
+    setWindowsEnvironmentVariables('NODE_ENV', env)
+    setWindowsEnvironmentVariables('O4S_CONFIG_PATH', path.join(constants.DIRECTORIES.APP, "config.json"))
+    setWindowsEnvironmentVariables('LOG_LEVEL', logLevel)
+    utils.sendAlert(constants.UI_ALERT_KEYS.ENVIRONMENT_SETUP, {
+      configuring: false,
+      configuredSuccessfully: true
+    })
+  } catch (err) {
+    log.error(`Failed to setup the env variables`)
+    utils.sendAlert(constants.UI_ALERT_KEYS.ENVIRONMENT_SETUP, {
+      configuring: false,
+      configuredSuccessfully: false
+    })
+    throw err
   }
-  setWindowsEnvironmentVariables('NODE_ENV', env)
-  setWindowsEnvironmentVariables('O4S_CONFIG_PATH', path.join(constants.DIRECTORIES.APP, "config.json"))
-  setWindowsEnvironmentVariables('LOG_LEVEL', logLevel)
 }
 
 const setWindowsEnvironmentVariables = function (key, value) {
   let command = `[System.Environment]::SetEnvironmentVariable('${key}', '${value}', [System.EnvironmentVariableTarget]::User)`
   utils.runSpawnCommand(command)
 }
+
 
 const sendInstallationAlert = function (component) {
   log.info(component)
@@ -294,7 +373,7 @@ const getComponentsToInstall = function () {
   return Object.keys(manifestJson.apps)
 }
 
-const updateAppJson = function(dependencies) {
+const updateAppJson = function (dependencies) {
   fs.writeFileSync(path.join(constants.DIRECTORIES.APP, "app.json"), JSON.stringify(dependencies, null, 2), {
     encoding: 'utf-8'
   })

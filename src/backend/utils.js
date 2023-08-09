@@ -1,6 +1,7 @@
 
 
 let log = require('electron-log');
+const decompress = require("decompress");
 const { createHash } = require("crypto");
 const https = require('https');
 const fs = require('fs-extra');
@@ -94,6 +95,15 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+async function extractFiles(sourceFolderPath, destinationFolderPath) {
+  try {
+    await decompress(sourceFolderPath, destinationFolderPath)
+  } catch (err) {
+    log.error('Error while extracting files:', err);
+    throw err
+  }
+}
+
 module.exports = {
   runSpawnCommand,
   downloadFile,
@@ -101,5 +111,6 @@ module.exports = {
   sleep,
   moveFile,
   extractFileNameFromUrl,
-  matchChecksum
+  matchChecksum,
+  extractFiles
 }

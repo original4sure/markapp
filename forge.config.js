@@ -16,6 +16,7 @@ module.exports = {
           owner: 'original4sure',
           name: 'markapp',
         },
+        loadingGif: "./loading.gif",
         prerelease: false,
         draft: false,
       },
@@ -27,7 +28,8 @@ module.exports = {
       name: '@electron-forge/maker-squirrel',
       config: {
         authors: 'Sachin',
-        description: 'Mark App Initializer'
+        description: 'Mark App Initializer',
+        loadingGif: "./loading.gif"
       },
     },
     {
