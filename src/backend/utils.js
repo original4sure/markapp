@@ -104,6 +104,16 @@ async function extractFiles(sourceFolderPath, destinationFolderPath) {
   }
 }
 
+const buildSilentExecutionCommand = function(path) {
+  const silentCommand = `Start-Process -Wait -FilePath ${path} -ArgumentList /S -PassThru`
+  return silentCommand
+}
+
+const runMongoInstallationCommand = function() {
+  let installCommand = `& "${mongoDbPath}\\bin\\mongod.exe" --config "${mongoDbConfigPath}" --install`
+  return utils.runSpawnCommand(installCommand)
+}
+
 module.exports = {
   runSpawnCommand,
   downloadFile,
@@ -112,5 +122,7 @@ module.exports = {
   moveFile,
   extractFileNameFromUrl,
   matchChecksum,
-  extractFiles
+  extractFiles,
+  buildSilentExecutionCommand,
+  runMongoInstallationCommand
 }

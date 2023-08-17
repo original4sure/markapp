@@ -11,7 +11,7 @@ const serviceUtils = require("./serviceUtils")
 
 const bootMarkEdge = async function () {
   try {
-    let servicesDowloaded = checkIfServicesAllreadyInstalled()
+    let servicesDowloaded = ifServicesAllreadyInstalled()
     log.info(`servicesDowloaded ${servicesDowloaded}`)
     await setupMarkCli()
     setupDirectories()
@@ -102,18 +102,22 @@ const setupDirectories = function () {
   }
 }
 
-const checkIfServicesAllreadyInstalled = function () {
+const ifServicesAllreadyInstalled = function () {
   try {
-    if (fs.existsSync(path.join(constants.DIRECTORIES.APP, "config.json")) &&
-     fs.existsSync(path.join(constants.DIRECTORIES.APP, "app.json"))  && 
-     fs.existsSync(`C:\\Windows\\System32\\mark.ps1`)) {
+    const serviceConfigPath = path.join(constants.DIRECTORIES.APP, "config.json")
+    const markConfigPath = path.join(constants.DIRECTORIES.APP, "app.json")
+    const markScriptPath = path.join(constants.DIRECTORIES.SYSTEM, "mark.ps1")
+    const doesRequiredPathsExist = [serviceConfigPath, markConfigPath, markScriptPath].every(fs.existsSync)
+
+    if (doesRequiredPathsExist) {
       return true
     }
+
+    return false
   } catch (err) {
     log.info(err)
     return false
   }
-  return false
 }
 
 const setupAutoStartForMarkApp = async function () {

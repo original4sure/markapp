@@ -9,7 +9,7 @@ const URLS = {
 
 const DEPENDENCY_TYPES = {
   NSSM_SERVICE: "nssm",
-  MONGO_INSTALLER: "mongo",
+  MONGO_ZIPPED: "mongo",
   EXECUTABLE: "process",
   ARCHIVE: "archive",
   APP_ARCHIVE: "appArchive",
@@ -27,7 +27,7 @@ const DIRECTORIES = {
 
 const UI_ALERT_KEYS = {
   INSTALLATION: "installation:status",
-  DEPENDENCY_RUNNING: "dependency-running:status",
+  DEPENDENCY_STATUS: "dependency:status",
   UPDATE: "update:status",
   SERVICE: "service:status",
   ENVIRONMENT_SETUP : "environment:status"

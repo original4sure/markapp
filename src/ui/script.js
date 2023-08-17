@@ -163,7 +163,7 @@ ipcRenderer.on('installation:status', (installationStatus) => {
     }
   }
 })
-ipcRenderer.on('dependency-running:status', (dependencyStatuses) => {
+ipcRenderer.on('dependency:status', (dependencyStatuses) => {
   for (let dependency of dependencyStatuses) {
 
     let spinnerElement = document.getElementById(`${dependency.name}-spinner`)

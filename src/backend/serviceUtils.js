@@ -84,7 +84,7 @@ const startService = function (dependency) {
 }
 
 const startMongo = function() {
-  const mongoCommandToStart = "& net start mongodb"
+  const mongoCommandToStart = "Start-Service mongodb"
   let mongoRunning = utils.runSpawnCommand(mongoCommandToStart)
   if(!mongoRunning.success) {
     log.info(`Failed to start mongo`)

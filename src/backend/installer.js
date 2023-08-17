@@ -68,7 +68,7 @@ const downloadAndInstallAllDependencies = async function () {
       component.installing = true
       log.info(`sending data ${JSON.stringify(componentsStatuses)}`)
       sendInstallationAlert(component)
-      utils.sendAlert(constants.UI_ALERT_KEYS.DEPENDENCY_RUNNING, componentsStatuses)
+      utils.sendAlert(constants.UI_ALERT_KEYS.DEPENDENCY_STATUS, componentsStatuses)
 
       for (let dependency of manifestJson.apps[component.name]) {
         log.info(dependency.name)
@@ -104,8 +104,8 @@ const installDependency = async function (dependency) {
       case constants.DEPENDENCY_TYPES.NSSM_SERVICE:
         registerService(dependency)
         break
-      case constants.DEPENDENCY_TYPES.MONGO_INSTALLER:
-        await installMongSyncWithoutPopup(dependency)
+      case constants.DEPENDENCY_TYPES.MONGO_ZIPPED:
+        await installMongo(dependency)
         break
       case constants.DEPENDENCY_TYPES.ARCHIVE:
         await unzipArchive(dependency)
@@ -156,6 +156,7 @@ const uninstallMongo = function () {
   const mongoInstalled = utils.runSpawnCommand(mongoInstalledCommand)
   log.info(`mongoInstalled ${JSON.stringify(mongoInstalled)}`)
   if (!mongoInstalled.success) {
+    log.info("uninstall mongo: ignore: not installed")
     return
   }
   const uninstallCommand = `& "${constants.DIRECTORIES.MONGO}\\bin\\mongod.exe" --remove`
@@ -164,12 +165,12 @@ const uninstallMongo = function () {
   fs.rmSync(binDirectory, { recursive: true, force: true });
   log.info(`Uninstalled mongo successfully`)
 }
-const installMongSyncWithoutPopup = async function () {
+const installMongo = async function () {
   uninstallMongo()
+  await createMongoPaths()
   const mongoDbPath = constants.DIRECTORIES.MONGO
   const unzippedFolderContent = path.join(mongoDbPath, "mongodb-win32-x86_64-2012plus-4.2.8")
   const mongoDbConfigPath = path.join(mongoDbPath, "mongod.cfg")
-  await createMongoPaths()
   const mongoZipPath = path.join(constants.DIRECTORIES.APP, "mongodb-win32-x86_64-2012plus-4.2.8.zip")
   await utils.extractFiles(mongoZipPath, mongoDbPath)
   log.info(`files are exctracted successfully `)
@@ -182,10 +183,9 @@ const installMongSyncWithoutPopup = async function () {
     throw err
   }
   fs.rmSync(unzippedFolderContent, { recursive: true, force: true });
-  let installCommand = `& "${mongoDbPath}\\bin\\mongod.exe" --config "${mongoDbConfigPath}" --install`
-  let installCommandRes = utils.runSpawnCommand(installCommand)
-  log.info(JSON.stringify(installCommandRes))
-  if (!installCommandRes.success) {
+  const installResult = utils.runMongoInstallationCommand()
+  log.info(JSON.stringify(installResult))
+  if (!installResult.success) {
     throw new Error(`Mongo Installation failed`)
   }
   log.info(`Mongo installed successfully`)
@@ -193,7 +193,7 @@ const installMongSyncWithoutPopup = async function () {
 
 const createMongoPaths = async function () {
   try {
-    const mongoDbPath = "C:\\Program Files\\MongoDB\\Server\\4.2"
+    const mongoDbPath = constants.DIRECTORIES.MONGO
     const mongoLogPath = path.join(mongoDbPath, 'log')
     const mongoDataPath = path.join(mongoDbPath, 'data')
     fs.ensureDirSync(mongoDbPath)
@@ -207,25 +207,6 @@ const createMongoPaths = async function () {
     }
   } catch (err) {
     log.info(`Failed to setup Mongo directories`)
-    throw err
-  }
-}
-
-
-const installMongSync = function () {
-  try {
-    let command = `"${constants.DIRECTORIES.MSI_EXECUTOR}" /l*v mdbinstall.log  /qb /i "${constants.DIRECTORIES.APP}\\mongodb-win32-x86_64-2012plus-4.2.8-signed.msi" SHOULD_INSTALL_COMPASS="0" ADDLOCAL="ServerService,ServerNoService,Client,ImportExportTools"`,
-      child = spawnSync(command, {
-        shell: true,
-        encoding: 'utf-8'
-      });
-    log.info(`child ${JSON.stringify(child)}`)
-    if (child.error || child.stderr) {
-      throw Error(`Installation for Mongo failed ${child.error || child.stderr}`)
-    } else {
-      return true
-    }
-  } catch (err) {
     throw err
   }
 }
@@ -274,7 +255,7 @@ const startProcess = function (dependency) {
   let dependencyPath = path.join(constants.DIRECTORIES.APP, dependencyFileName)
   log.info(`Starting up the process ${dependencyPath}`)
   let res
-  const silentCommand = `Start-Process -Wait -FilePath ${dependencyPath} -ArgumentList /S -PassThru`
+  const silentCommand = utils.buildSilentExecutionCommand(dependencyPath)
   if (dependency.name === "glabels") {
     res = utils.runSpawnCommand(silentCommand)
     command = `[System.Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\Program Files\\glabels 3.99.0\\bin', [System.EnvironmentVariableTarget]::Machine)`
@@ -361,11 +342,11 @@ const sendInstallationAlert = function (component) {
   if (component.componentsToInstall === component.componentInstalled.length + component.componentInstallationFailed.length) {
     log.info(`Sending Alert`)
     component.installing = false
-    utils.sendAlert(constants.UI_ALERT_KEYS.DEPENDENCY_RUNNING, componentsStatuses)
+    utils.sendAlert(constants.UI_ALERT_KEYS.DEPENDENCY_STATUS, componentsStatuses)
   } else if (component.componentInstallationFailed.length > 0) {
     log.info(`Sending Alert`)
     component.installing = false
-    utils.sendAlert(constants.UI_ALERT_KEYS.DEPENDENCY_RUNNING, componentsStatuses)
+    utils.sendAlert(constants.UI_ALERT_KEYS.DEPENDENCY_STATUS, componentsStatuses)
   }
 }
 
