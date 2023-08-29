@@ -1,5 +1,5 @@
 const URLS = {
-  MANIFEST_JSON: "https://mark-assets.s3.ap-south-1.amazonaws.com/markV3/v3/manifest.json",
+  MANIFEST_JSON: "https://mark-assets.s3.ap-south-1.amazonaws.com/markV3/installerV3/manifest.json",
   CONFIG_JSON: "https://mark-assets.s3.ap-south-1.amazonaws.com/markV3/config.json",
   REGISTER_SERVICE: "https://mark-assets.s3.ap-south-1.amazonaws.com/markV3/register-service.ps1",
   NSSM_SERVICE: "https://mark-assets.s3.ap-south-1.amazonaws.com/nssm.exe",

@@ -162,15 +162,19 @@ const uninstallMongo = function () {
   const uninstallCommand = `& "${constants.DIRECTORIES.MONGO}\\bin\\mongod.exe" --remove`
   utils.runSpawnCommand(uninstallCommand)
   const binDirectory = path.join(constants.DIRECTORIES.MONGO, "bin");
-  fs.rmSync(binDirectory, { recursive: true, force: true });
-  log.info(`Uninstalled mongo successfully`)
+  let command = `Remove-Item -Path "${binDirectory}" -Force -Recurse -ErrorAction Stop`
+  let res = utils.runSpawnCommand(command)
+  if(res.success) {
+    log.info(`Uninstalled mongo successfully`)
+  } else {
+    log.info(`Failed to delete the directory ${binDirectory}`)
+  }
 }
 const installMongo = async function () {
   uninstallMongo()
   await createMongoPaths()
   const mongoDbPath = constants.DIRECTORIES.MONGO
   const unzippedFolderContent = path.join(mongoDbPath, "mongodb-win32-x86_64-2012plus-4.2.8")
-  const mongoDbConfigPath = path.join(mongoDbPath, "mongod.cfg")
   const mongoZipPath = path.join(constants.DIRECTORIES.APP, "mongodb-win32-x86_64-2012plus-4.2.8.zip")
   await utils.extractFiles(mongoZipPath, mongoDbPath)
   log.info(`files are exctracted successfully `)

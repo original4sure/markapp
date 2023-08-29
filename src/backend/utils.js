@@ -1,12 +1,12 @@
 
 
 let log = require('electron-log');
-const decompress = require("decompress");
 const { createHash } = require("crypto");
 const https = require('https');
 const fs = require('fs-extra');
 const { spawnSync } = require("child_process");
 const path = require('path')
+const constants = require("./constants")
 
 const runSpawnCommand = function (command) {
   try {
@@ -97,7 +97,11 @@ function sleep(ms) {
 
 async function extractFiles(sourceFolderPath, destinationFolderPath) {
   try {
-    await decompress(sourceFolderPath, destinationFolderPath)
+    const command = `Expand-Archive -Path "${sourceFolderPath}" -DestinationPath "${destinationFolderPath}" -Force -ErrorAction Stop`
+    const res = runSpawnCommand(command)
+    if(!res.success) {
+      throw new Error(`Failed to extract folder`)
+    }
   } catch (err) {
     log.error('Error while extracting files:', err);
     throw err
@@ -110,8 +114,9 @@ const buildSilentExecutionCommand = function(path) {
 }
 
 const runMongoInstallationCommand = function() {
-  let installCommand = `& "${mongoDbPath}\\bin\\mongod.exe" --config "${mongoDbConfigPath}" --install`
-  return utils.runSpawnCommand(installCommand)
+  const mongoDbConfigPath = path.join(constants.DIRECTORIES.MONGO, "mongod.cfg")
+  let installCommand = `& "${constants.DIRECTORIES.MONGO}\\bin\\mongod.exe" --config "${mongoDbConfigPath}" --install`
+  return runSpawnCommand(installCommand)
 }
 
 module.exports = {
