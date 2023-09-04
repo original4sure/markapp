@@ -8,6 +8,8 @@ serializerStatus = document.getElementById("serializer-status")
 labelPrinterSpinner = document.getElementById("labelPrinter-spinner")
 labelPrinterStatus = document.getElementById("labelPrinter-status")
 versionElement = document.getElementById("version")
+let environmentStatus = document.getElementById("env-var-status")
+let environmentSpinner = document.getElementById("env-var-spinner")
 let updateStatus = document.getElementById("update-status")
 
 let serviceStatuses = []
@@ -115,18 +117,22 @@ ipcRenderer.on('service:status', (status) => {
     serviceSpinner.classList.remove("fa", "fa-solid", "fa-spinner", "fa-spin")
     // let classesToAdd = []
     let message
+    let style 
     if (serviceNotRunning.length > 1) {
       message = `Services ${serviceNotRunning.map(service => service.name).join(", ")} are not running`
-      serviceSpinner.classList.add("fa", "fa-close")
+      style = `color: #f54040;font-size:28px;`
+      // serviceSpinner.classList.add("fa", "fa-close")
     } else if (serviceNotRunning.length === 1) {
+      style = `color: #f54040;font-size:28px;`
       message = `Service ${serviceNotRunning[0].name} is not running`
-      serviceSpinner.classList.add("fa", "fa-close")
+      // serviceSpinner.classList.add("fa", "fa-close")
     } else {
-      serviceSpinner.classList.add("fa", "fa-check-square-o")
-      message = `Mark is up and running at localhost:6060`
+      // serviceSpinner.classList.add("fa", "fa-check-square-o")
+      style = `color: #48bf51;font-size:28px;`
+      message = `Mark is up and running`
     }
     serviceStatus.innerHTML = message
-
+    serviceStatus.style = style
   }
 });
 
@@ -157,7 +163,7 @@ ipcRenderer.on('installation:status', (installationStatus) => {
     }
   }
 })
-ipcRenderer.on('dependency-running:status', (dependencyStatuses) => {
+ipcRenderer.on('dependency:status', (dependencyStatuses) => {
   for (let dependency of dependencyStatuses) {
 
     let spinnerElement = document.getElementById(`${dependency.name}-spinner`)
@@ -178,4 +184,20 @@ ipcRenderer.on('dependency-running:status', (dependencyStatuses) => {
     }
   }
 
+})
+
+ipcRenderer.on('environment:status', (environmentSetupStatus) => {
+  if(environmentSetupStatus.configuring) {
+    environmentSpinner.classList.add("fa", "fa-solid", "fa-spinner", "fa-spin")
+    environmentStatus.innerHTML = `Setting up environment variables`
+  } else {
+    environmentSpinner.classList.remove("fa", "fa-solid", "fa-spinner", "fa-spin")
+    if(environmentSetupStatus.configuredSuccessfully) {
+      environmentSpinner.classList.add("fa", "fa-check-square-o")
+      environmentStatus.innerHTML = `Environment variables setup successfully`
+    } else {
+      environmentSpinner.classList.add("fa", "fa-close")
+      environmentStatus.innerHTML = `Environment variables setup failed`
+    }
+  }
 })
